@@ -132,8 +132,11 @@ updated.records <- ExtractFromLoggingDataChanges(
   pattern      = kTIPTOPHHSMidlineDate
 )
 
-# Build ordered data frame of all logs related to the creation and update actions
+# Build ordered data frame of all logs related to the creation and update 
+# actions, i.e. the records history data frame
 all.records <- rbind(created.records, updated.records)
 all.records <- all.records[order(all.records$record_id, all.records$Time...Date), ]
 
-
+# Add empty columns to the records history data frame for the different 
+# field values described in the REDCap project data dictionary
+all.records[, field.names$export_field_name] <- NA
