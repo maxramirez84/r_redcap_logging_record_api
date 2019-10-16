@@ -139,4 +139,33 @@ all.records <- all.records[order(all.records$record_id, all.records$Time...Date)
 
 # Add empty columns to the records history data frame for the different 
 # field values described in the REDCap project data dictionary
-all.records[, field.names$export_field_name] <- NA
+non.parsed.fields <- c("record_id")
+fields <- field.names$export_field_name[!(field.names$export_field_name %in% non.parsed.fields)]
+all.records[, fields] <- NA
+
+# Parse List.of.Data.Changes.OR.Fields.Exported column of records history data 
+# frame and store values in corresponding columns
+for (i in 1:nrow(all.records)) {
+  #browser()
+  record.modifications <- trimws(
+    unlist(
+      strsplit(all.records$List.of.Data.Changes.OR.Fields.Exported[i], ",")
+    )
+  )
+  
+  if (length(record.modifications) > 0) {
+    for (j in 1:length(record.modifications)) {
+      variable.value.pair <- trimws(
+        unlist(
+          strsplit(record.modifications[j], "=")
+        )
+      )
+      
+      all.records[i, variable.value.pair[1]] <- gsub(
+        pattern     = "'", 
+        replacement = '', 
+        x           = variable.value.pair[2]
+      )
+    }
+  }
+}
