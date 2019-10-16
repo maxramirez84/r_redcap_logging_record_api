@@ -1,4 +1,11 @@
+library(redcapAPI)
 
+source("tokens.R")
+
+# Connect to REDCap project and export project field names
+project           <- kAPITokenNIG
+redcap.connection <- redcapConnection(kREDCapAPIURL, project)
+field.names       <- exportFieldNames(redcap.connection)
 
 # Read logging file
 kLoggingFileName <- "TIPTOPHHSMidlineNigeria_Logging_2019-10-07_1306.csv"
@@ -6,8 +13,8 @@ logging.file     <- read.csv(kLoggingFileName, stringsAsFactors = F)
 
 
 # Build record history ---------------------------------------------------------
-kCreatedRecordAction = "Created Record"
-kUpdatedRecordAction = "Updated Record"
+kCreatedRecordAction <- "Created Record"
+kUpdatedRecordAction <- "Updated Record"
 
 # Filter logs related to record creation and update
 created.records <- 
