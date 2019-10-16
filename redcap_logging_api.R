@@ -145,27 +145,46 @@ all.records[, fields] <- NA
 
 # Parse List.of.Data.Changes.OR.Fields.Exported column of records history data 
 # frame and store values in corresponding columns
-for (i in 1:nrow(all.records)) {
+
+# For each record creation/modification log
+for (i in 1:nrow(all.records)) {  
   #browser()
+  
+  # Split key-value pairs separated by comma
   record.modifications <- trimws(
     unlist(
       strsplit(all.records$List.of.Data.Changes.OR.Fields.Exported[i], ",")
     )
   )
   
+  # For each created/modified field
   if (length(record.modifications) > 0) {
-    for (j in 1:length(record.modifications)) {
-      variable.value.pair <- trimws(
+    # Split key and value separatd by the equal sign
+    for (j in 1:length(record.modifications)) { 
+      key.value.pair <- trimws(
         unlist(
           strsplit(record.modifications[j], "=")
         )
       )
       
-      all.records[i, variable.value.pair[1]] <- gsub(
+      # If multi-choice variable, change name from var_name(n) to var_name___n
+      kMultiChoiceREDCapPattern <- ".*\\((\\d+)\\)"
+      key   <- key.value.pair[1]
+      value <- key.value.pair[2]
+      if (grepl(kMultiChoiceREDCapPattern, key))
+        key <- paste0(
+          unlist(strsplit(key, "\\("))[1], 
+          "___", 
+          sub(kMultiChoiceREDCapPattern, "\\1", key)
+        )
+      
+      all.records[i, key] <- gsub(
         pattern     = "'", 
         replacement = '', 
-        x           = variable.value.pair[2]
+        x           = value
       )
     }
   }
 }
+
+write.csv(all.records, "records_history.csv")
