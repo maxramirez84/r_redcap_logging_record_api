@@ -1,4 +1,5 @@
 library(redcapAPI)
+library(stringr)
 
 source("tokens.R")
 
@@ -139,7 +140,7 @@ all.records <- all.records[order(all.records$record_id, all.records$Time...Date)
 
 # Add empty columns to the records history data frame for the different 
 # field values described in the REDCap project data dictionary
-non.parsed.fields <- c("record_id")
+non.parsed.fields <- c("record_id", "cluster")
 fields <- field.names$export_field_name[!(field.names$export_field_name %in% non.parsed.fields)]
 all.records[, fields] <- NA
 
@@ -149,12 +150,19 @@ all.records[, fields] <- NA
 # For each record creation/modification log
 for (i in 1:nrow(all.records)) {  
   #browser()
-  
-  # Split key-value pairs separated by comma
-  record.modifications <- trimws(
-    unlist(
-      strsplit(all.records$List.of.Data.Changes.OR.Fields.Exported[i], ",")
-    )
+  print(paste("Loop", i))
+  # Extract key-value pairs by regex
+  kKeyValuePattern   <- "\\w+ = '(\\w*[-: ,\\\".\\(\\)\\*]*\\w*)*'"
+  kMultiChoicePatter <- "\\w+\\(\\d+\\) = checked"
+  record.modifications <- c(
+    unlist(str_extract_all(
+      string  = all.records$List.of.Data.Changes.OR.Fields.Exported[i],
+      pattern = kKeyValuePattern
+    )),
+    unlist(str_extract_all(
+      string  = all.records$List.of.Data.Changes.OR.Fields.Exported[i],
+      pattern = kMultiChoicePatter
+    ))
   )
   
   # For each created/modified field
